@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PCB 生產進度戰情指揮中心 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            background-color: #030814;
+            color: #d1e8ff;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
+        }
+
+        .dashboard-container {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        @media (min-width: 1024px) {
+            html, body {
+                overflow: hidden;
+                height: 100vh;
+            }
+            .dashboard-container {
+                height: calc(100vw * 9 / 16);
+                max-height: 100vh;
+                max-width: calc(100vh * 16 / 9);
+                aspect-ratio: 16 / 9;
+                padding: 0.75rem;
+                margin: auto;
+            }
+        }
+
+        .tech-card {
+            background: rgba(8, 20, 42, 0.85);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            border-color: rgba(0, 240, 255, 0.5);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.15), 0 6px 25px rgba(0, 240, 255, 0.2);
+        }
+
+        .tech-title {
+            color: #70d6ff;
+            border-left: 4px solid #00f0ff;
+            padding-left: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(10, 28, 58, 0.95) 0%, rgba(3, 8, 20, 0.9) 100%);
+            border-bottom: 2px solid #00f0ff;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+        }
+
+        .core-spinner {
+            border: 2px dashed rgba(0, 240, 255, 0.6);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+            animation: spin 25s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(5, 15, 30, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.4);
+            border-radius: 2px;
+        }
+
+        .badge-normal {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .badge-warning {
+            background: rgba(255, 170, 0, 0.15);
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+        .badge-abnormal {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+        }
+        .badge-overdue {
+            background: rgba(255, 0, 85, 0.3);
+            color: #ff0055;
+            border: 1px solid #ff0055;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .pulse-online {
+            box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            70% { box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .marquee-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            white-space: nowrap;
+            display: block;
+        }
+
+        .marquee-inner {
+            display: inline-block;
+            white-space: nowrap;
+            height: 100%;
+            line-height: 1.5rem;
+            padding-left: 100%;
+            animation: ticker 35s linear infinite;
+        }
+
+        .marquee-inner:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- 頂部標題與狀態資訊欄 -->
+        <header class="rounded-lg p-2 mb-2 shrink-0">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2">
+                <div class="flex items-center gap-2.5 w-full lg:w-auto">
+                    <i class="fa-solid fa-microchip text-lg lg:text-xl text-cyan-400 animate-pulse shrink-0"></i>
+                    <div class="flex-1">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <h1 class="text-sm lg:text-base font-bold tracking-wider text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">
+                                PCB 生產進度戰情指揮中心
+                            </h1>
+                            <button id="fullscreen-btn" onclick="toggleFullScreen()" class="tech-card px-2 py-0.5 text-cyan-400 hover:text-white text-[10px] lg:text-[11px] font-bold lg:hidden flex items-center gap-1">
+                                <i class="fa-solid fa-expand text-[9px]"></i>
+                                <span id="fullscreen-btn-text-mobile">全螢幕</span>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-[11px] text-slate-400 mt-0.5">
+                            <span class="flex items-center gap-1">
+                                <span id="connection-status" class="w-2 h-2 rounded-full bg-emerald-400 pulse-online shrink-0"></span>
+                                <span id="data-source-time" class="truncate max-w-[120px] lg:max-w-none">data.json 讀取中...</span>
+                            </span>
+                            <span id="current-time" class="hidden sm:inline">現在時間: --</span>
+                            <span id="last-refresh-time" class="text-cyan-400/80">最後刷新: --</span>
+                            
+                            <button id="fullscreen-btn-desktop" onclick="toggleFullScreen()" class="tech-card px-2 py-0.5 text-cyan-400 hover:text-white text-[11px] font-bold hidden lg:flex items-center gap-1 shrink-0 ml-1">
+                                <i class="fa-solid fa-expand text-[10px]"></i>
+                                <span id="fullscreen-btn-text">全螢幕</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 卡片區塊 -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 lg:gap-2 w-full lg:w-auto">
+                    <div class="tech-card px-2 lg:px-3 py-1 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-cyan-400 text-base lg:text-lg shrink-0"></i>
+                        <div>
+                            <div class="text-[9px] lg:text-[10px] text-slate-400">在途工單</div>
+                            <div id="kpi-total" class="text-sm lg:text-base font-bold text-cyan-400">0</div>
+                        </div>
+                    </div>
+
+                    <div class="tech-card px-2 lg:px-3 py-1 flex items-center gap-2 border-emerald-500/40">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-base lg:text-lg shrink-0"></i>
+                        <div>
+                            <div class="text-[9px] lg:text-[10px] text-slate-400">正常推進</div>
+                            <div id="kpi-normal" class="text-sm lg:text-base font-bold text-emerald-400">0</div>
+                        </div>
+                    </div>
+
+                    <div class="tech-card px-2 lg:px-3 py-1 flex items-center gap-2 border-amber-500/40">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base lg:text-lg shrink-0"></i>
+                        <div>
+                            <div class="text-[9px] lg:text-[10px] text-slate-400">交期預警</div>
+                            <div id="kpi-warning" class="text-sm lg:text-base font-bold text-amber-400">0</div>
+                        </div>
+                    </div>
+
+                    <div class="tech-card px-2 lg:px-3 py-1 flex items-center gap-2 border-rose-500/40">
+                        <i class="fa-solid fa-circle-xmark text-rose-400 text-base lg:text-lg shrink-0"></i>
+                        <div>
+                            <div class="text-[9px] lg:text-[10px] text-slate-400">異常/逾期</div>
+                            <div id="kpi-abnormal" class="text-sm lg:text-base font-bold text-rose-400">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 動態跑馬燈通知 -->
+            <div class="flex items-center gap-2 mt-1 bg-cyan-950/50 border border-cyan-800/60 rounded px-2 h-7 overflow-hidden">
+                <span class="bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded text-[9px] lg:text-[10px] flex items-center gap-1 shrink-0 z-10 whitespace-nowrap">
+                    <i class="fa-solid fa-bell animate-bounce text-[9px]"></i> 戰情通知
+                </span>
+                <div class="marquee-wrapper text-amber-300 text-[11px] lg:text-xs min-w-0 flex-1">
+                    <div class="marquee-inner">
+                        <span id="ticker-text" class="whitespace-nowrap inline-block">正在讀取戰情資料...</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主體內容區塊 -->
+        <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2.5 min-h-0 overflow-y-auto lg:overflow-hidden">
+
+            <!-- 左側面板 -->
+            <section class="lg:col-span-3 flex flex-col gap-2.5">
+                <div class="tech-card p-2.5 flex-1 flex flex-col h-[220px] lg:h-auto min-h-0">
+                    <div class="tech-title">
+                        <span><i class="fa-solid fa-chart-pie mr-1 text-cyan-400"></i>工站進行中分佈</span>
+                    </div>
+                    <div id="chart-stage" class="w-full flex-1 min-h-0"></div>
+                </div>
+
+                <div class="tech-card p-2.5 flex-1 flex flex-col h-[220px] lg:h-auto min-h-0">
+                    <div class="tech-title">
+                        <span><i class="fa-solid fa-users text-cyan-400 mr-1"></i>主要客戶訂單排行</span>
+                    </div>
+                    <div id="chart-customer" class="w-full flex-1 min-h-0"></div>
+                </div>
+            </section>
+
+            <!-- 中央面板 (工單監控表格) -->
+            <section class="lg:col-span-6 flex flex-col h-[400px] lg:h-full min-h-0">
+                <div class="tech-card p-2.5 flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-cyan-900/50 pb-1.5 mb-1.5 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 lg:w-8 lg:h-8 rounded-full core-spinner flex items-center justify-center bg-cyan-950/30 shrink-0">
+                                <i class="fa-solid fa-server text-xs lg:text-sm text-cyan-400"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xs lg:text-sm font-bold text-cyan-300">PCB 車間實時動態監控</h2>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-cyan-950/80 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded shrink-0">
+                            <i class="fa-solid fa-arrows-rotate animate-spin mr-1"></i><span id="countdown-timer">60</span>s
+                        </span>
+                    </div>
+
+                    <div class="tech-title mb-1.5 shrink-0">
+                        <span><i class="fa-solid fa-list-check mr-1 text-cyan-400"></i>實時工單追蹤 (異常優先/交期排序)</span>
+                    </div>
+                    
+                    <!-- 表格滾動容器 -->
+                    <div class="flex-1 min-h-0 overflow-x-auto overflow-y-auto custom-scrollbar">
+                        <table class="w-full text-[11px] lg:text-xs text-left min-w-[580px]">
+                            <thead class="text-cyan-400 bg-cyan-950/80 sticky top-0 backdrop-blur-md">
+                                <tr>
+                                    <!-- 固定序號欄位寬度為 6 個字元 (w-[8ch]) -->
+                                    <th class="p-1.5 whitespace-nowrap w-[8ch] min-w-[8ch] max-w-[8ch] align-middle">序號</th>
+                                    <!-- 固定料號欄位寬度為 15 個字元 (w-[15ch]) -->
+                                    <th class="p-1.5 whitespace-nowrap w-[15ch] min-w-[15ch] max-w-[15ch] align-middle">料號</th>
+                                    <!-- 固定客戶欄位寬度為 10 個字元 (w-[10ch]) -->
+                                    <th class="p-1.5 whitespace-nowrap w-[10ch] min-w-[10ch] max-w-[10ch] align-middle">客戶</th>
+                                    <th class="p-1.5 align-middle">目前進度</th>
+                                    <th class="p-1.5 w-24 whitespace-nowrap align-middle">預計交期 ▲</th>
+                                    <th class="p-1.5 w-16 text-center whitespace-nowrap align-middle">狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-table-body" class="divide-y divide-cyan-900/30">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分頁導覽 -->
+                    <div class="flex items-center justify-between border-t border-cyan-900/50 pt-1.5 mt-1.5 text-xs shrink-0 bg-cyan-950/30 px-1">
+                        <div id="page-info-count" class="text-slate-400 font-mono text-[10px] lg:text-[11px]">
+                            顯示 <span id="current-range-text">0-0</span>，共 <span id="total-orders-text">0</span> 筆
+                        </div>
+                        <div class="flex items-center gap-1.5 lg:gap-2">
+                            <button id="prev-page-btn" onclick="changePage(-1)" class="tech-card px-2 py-0.5 text-cyan-400 hover:text-white disabled:opacity-40 text-[11px]">
+                                <i class="fa-solid fa-chevron-left text-[9px]"></i> 上頁
+                            </button>
+                            <span class="text-cyan-300 font-mono text-[11px] px-0.5">
+                                <span id="current-page-text">1</span> / <span id="total-pages-text">1</span>
+                            </span>
+                            <button id="next-page-btn" onclick="changePage(1)" class="tech-card px-2 py-0.5 text-cyan-400 hover:text-white disabled:opacity-40 text-[11px]">
+                                下頁 <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右側面板 -->
+            <section class="lg:col-span-3 flex flex-col gap-2.5">
+                <div class="tech-card p-2.5 flex-1 flex flex-col h-[220px] lg:h-auto min-h-0">
+                    <div class="tech-title">
+                        <span><i class="fa-solid fa-truck-ramp-box text-cyan-400 mr-1"></i>全程外包加工統計</span>
+                    </div>
+                    <div id="chart-outsource" class="w-full flex-1 min-h-0"></div>
+                </div>
+
+                <div class="tech-card p-2.5 flex-1 flex flex-col h-[220px] lg:h-auto min-h-0">
+                    <div class="tech-title">
+                        <span><i class="fa-solid fa-chart-line text-cyan-400 mr-1"></i>交期集中度趨勢</span>
+                    </div>
+                    <div id="chart-due-trend" class="w-full flex-1 min-h-0"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        let stageChart, custChart, outsourceChart, dueChart;
+        const REFRESH_INTERVAL = 60; 
+        let countdown = REFRESH_INTERVAL;
+
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        let sortedOrdersList = [];
+
+        function initCharts() {
+            stageChart = echarts.init(document.getElementById('chart-stage'));
+            custChart = echarts.init(document.getElementById('chart-customer'));
+            outsourceChart = echarts.init(document.getElementById('chart-outsource'));
+            dueChart = echarts.init(document.getElementById('chart-due-trend'));
+
+            window.addEventListener('resize', () => {
+                resizeAllCharts();
+            });
+        }
+
+        function resizeAllCharts() {
+            if (stageChart) stageChart.resize();
+            if (custChart) custChart.resize();
+            if (outsourceChart) outsourceChart.resize();
+            if (dueChart) dueChart.resize();
+        }
+
+        function formatDateTime(date) {
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        function startLiveClock() {
+            const currentTimeElem = document.getElementById('current-time');
+            const updateClock = () => {
+                if (currentTimeElem) {
+                    currentTimeElem.innerText = `現在時間: ${formatDateTime(new Date())}`;
+                }
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        async function loadDashboardData() {
+            const dataSourceIndicator = document.getElementById('data-source-time');
+            const lastRefreshIndicator = document.getElementById('last-refresh-time');
+            const statusDot = document.getElementById('connection-status');
+            const timestamp = new Date().getTime();
+            
+            countdown = REFRESH_INTERVAL;
+            document.getElementById('countdown-timer').innerText = countdown;
+            lastRefreshIndicator.innerText = `最後刷新: ${formatDateTime(new Date())}`;
+
+            try {
+                const response = await fetch(`./data.json?t=${timestamp}`);
+                if (!response.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+
+                const data = await response.json();
+                let jsonRecordTime = data.lastUpdated || formatDateTime(new Date());
+
+                updateDashboardUI(data);
+                
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 pulse-online shrink-0";
+                dataSourceIndicator.innerText = `data.json (${jsonRecordTime})`;
+                dataSourceIndicator.className = "truncate text-emerald-400";
+
+            } catch (error) {
+                console.warn('無法讀取 data.json:', error.message);
+                handleNoDataState();
+
+                statusDot.className = "w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0";
+                dataSourceIndicator.innerText = `❌ 無 json 資料`;
+                dataSourceIndicator.className = "truncate text-rose-400 font-semibold";
+            }
+        }
+
+        function startCountdown() {
+            setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    loadDashboardData();
+                } else {
+                    document.getElementById('countdown-timer').innerText = countdown;
+                }
+            }, 1000);
+        }
+
+        function handleNoDataState() {
+            document.getElementById('kpi-total').innerText = '0';
+            document.getElementById('kpi-normal').innerText = '0';
+            document.getElementById('kpi-warning').innerText = '0';
+            document.getElementById('kpi-abnormal').innerText = '0';
+
+            document.getElementById('ticker-text').innerText = `⚠️ 警告：搜尋不到 json 資料，請檢查連線狀態！`;
+
+            sortedOrdersList = [];
+            renderTablePage();
+
+            const emptyOption = {
+                title: {
+                    text: '無資料',
+                    x: 'center',
+                    y: 'center',
+                    textStyle: { color: '#64748b', fontSize: 13 }
+                },
+                series: []
+            };
+
+            stageChart.clear(); stageChart.setOption(emptyOption);
+            custChart.clear(); custChart.setOption(emptyOption);
+            outsourceChart.clear(); outsourceChart.setOption(emptyOption);
+            dueChart.clear(); dueChart.setOption(emptyOption);
+        }
+
+        function updateDashboardUI(data) {
+            if (data.orders && Array.isArray(data.orders)) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const processedOrders = data.orders.map(order => {
+                    let finalState = order.state || 'Normal';
+                    if (order.due) {
+                        const dueDate = new Date(order.due);
+                        dueDate.setHours(0, 0, 0, 0);
+                        
+                        if (dueDate < today && finalState !== 'Abnormal') {
+                            finalState = 'Overdue';
+                        }
+                    }
+                    return { ...order, state: finalState };
+                });
+
+                const total = processedOrders.length;
+                const normal = processedOrders.filter(o => o.state === 'Normal').length;
+                const warning = processedOrders.filter(o => o.state === 'Warning').length;
+                const abnormal = processedOrders.filter(o => o.state === 'Abnormal' || o.state === 'Overdue').length;
+
+                document.getElementById('kpi-total').innerText = total;
+                document.getElementById('kpi-normal').innerText = normal;
+                document.getElementById('kpi-warning').innerText = warning;
+                document.getElementById('kpi-abnormal').innerText = abnormal;
+
+                sortedOrdersList = [...processedOrders].sort((a, b) => {
+                    const getPriority = (state) => {
+                        if (state === 'Overdue') return 3;
+                        if (state === 'Abnormal') return 2;
+                        if (state === 'Warning') return 1;
+                        return 0;
+                    };
+
+                    const priA = getPriority(a.state);
+                    const priB = getPriority(b.state);
+
+                    if (priA !== priB) return priB - priA;
+
+                    const dateA = new Date(a.due || '9999-12-31');
+                    const dateB = new Date(b.due || '9999-12-31');
+                    return dateA - dateB;
+                });
+
+                const alertItems = sortedOrdersList
+                    .filter(item => item.state === 'Abnormal' || item.state === 'Overdue' || item.state === 'Warning')
+                    .map(item => {
+                        let tag = '【預警】';
+                        if (item.state === 'Overdue') tag = '【逾期】';
+                        if (item.state === 'Abnormal') tag = '【異常】';
+                        
+                        const custInfo = item.customer ? ` (${item.customer})` : '';
+                        const statusInfo = item.status ? ` [進度:${item.status}]` : '';
+                        
+                        return `${tag} ${item.part}${custInfo}${statusInfo}`;
+                    });
+
+                const tickerElem = document.getElementById('ticker-text');
+                if (alertItems.length > 0) {
+                    tickerElem.innerText = `🚨 戰情重點關注告警： ` + alertItems.join(' ｜ ');
+                } else {
+                    tickerElem.innerText = `✅ 目前現場無異常或預警工單，所有生產推進順暢。`;
+                }
+
+                renderTablePage();
+            } else {
+                sortedOrdersList = [];
+                renderTablePage();
+            }
+
+            // 各工站餅圖
+            if (data.stageData && data.stageData.length > 0) {
+                const stageColorMap = {
+                    '鑽孔/前製': '#a855f7',
+                    '線路工站': '#3b82f6',
+                    '防焊工站': '#06b6d4',
+                    '文字工站': '#f59e0b',
+                    '表面處理': '#10b981',
+                    '加工/CNC/成型': '#ec4899',
+                    '加工/CNC/...': '#ec4899',
+                    'QC/測試': '#00f0ff',
+                    '外包/其他': '#6366f1',
+                    '待料/暫停': '#ff4444',
+                    '完工': '#00ff88'
+                };
+
+                const fallbackPalette = [
+                    '#6366f1', '#10b981', '#3b82f6', '#ec4899', 
+                    '#06b6d4', '#a855f7', '#f59e0b', '#00f0ff', '#84cc16'
+                ];
+
+                stageChart.setOption({
+                    title: { show: false },
+                    tooltip: { trigger: 'item', formatter: '{b}: {c} 件 ({d}%)' },
+                    series: [{
+                        type: 'pie',
+                        radius: ['30%', '60%'],
+                        avoidLabelOverlap: true,
+                        itemStyle: { borderRadius: 4, borderColor: '#030814', borderWidth: 2 },
+                        label: { show: true, color: '#d1e8ff', fontSize: 9, formatter: '{b}\n{c}件' },
+                        data: data.stageData.map((item, index) => {
+                            let color = stageColorMap[item.name];
+                            
+                            if (!color) {
+                                if (item.name.includes('待料') || item.name.includes('暫停') || item.name.includes('異常')) {
+                                    color = '#ff4444';
+                                } else if (item.name.includes('完工')) {
+                                    color = '#00ff88';
+                                } else {
+                                    color = fallbackPalette[index % fallbackPalette.length];
+                                }
+                            }
+                            
+                            return { value: item.value, name: item.name, itemStyle: { color } };
+                        })
+                    }]
+                }, true);
+            }
+
+            // 客戶排行
+            if (data.customerData && data.customerData.categories) {
+                custChart.setOption({
+                    title: { show: false },
+                    tooltip: { trigger: 'axis' },
+                    grid: { left: '20%', right: '8%', bottom: '15%', top: '5%' },
+                    xAxis: { type: 'value', axisLabel: { color: '#88aacc', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(0,240,255,0.1)' } } },
+                    yAxis: { type: 'category', data: data.customerData.categories, axisLabel: { color: '#d1e8ff', fontSize: 9 } },
+                    series: [{
+                        type: 'bar',
+                        data: data.customerData.values,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                                { offset: 0, color: '#00f0ff' },
+                                { offset: 1, color: '#0055ff' }
+                            ]),
+                            borderRadius: [0, 4, 4, 0]
+                        }
+                    }]
+                }, true);
+            }
+
+            // 外包統計
+            if (data.outsourceData && data.outsourceData.categories) {
+                outsourceChart.setOption({
+                    title: { show: false },
+                    tooltip: { trigger: 'axis' },
+                    grid: { left: '12%', right: '8%', bottom: '15%', top: '5%' },
+                    xAxis: { type: 'category', data: data.outsourceData.categories, axisLabel: { color: '#d1e8ff', fontSize: 9 } },
+                    yAxis: { type: 'value', axisLabel: { color: '#88aacc', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(0,240,255,0.1)' } } },
+                    series: [{
+                        type: 'bar',
+                        data: data.outsourceData.values,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#ffaa00' },
+                                { offset: 1, color: '#885500' }
+                            ]),
+                            borderRadius: [4, 4, 0, 0]
+                        }
+                    }]
+                }, true);
+            }
+
+            // 交期趨勢
+            if (data.dueTrendData && data.dueTrendData.categories) {
+                dueChart.setOption({
+                    title: { show: false },
+                    tooltip: { trigger: 'axis' },
+                    grid: { left: '12%', right: '8%', bottom: '15%', top: '5%' },
+                    xAxis: { type: 'category', data: data.dueTrendData.categories, axisLabel: { color: '#88aacc', fontSize: 9 } },
+                    yAxis: { type: 'value', axisLabel: { color: '#88aacc', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(0,240,255,0.1)' } } },
+                    series: [{
+                        type: 'line',
+                        smooth: true,
+                        data: data.dueTrendData.values,
+                        lineStyle: { color: '#00ff88', width: 2 },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: 'rgba(0, 255, 136, 0.4)' },
+                                { offset: 1, color: 'rgba(0, 255, 136, 0.0)' }
+                            ])
+                        }
+                    }]
+                }, true);
+            }
+
+            setTimeout(resizeAllCharts, 100);
+        }
+
+        function renderTablePage() {
+            const tbody = document.getElementById('order-table-body');
+            tbody.innerHTML = '';
+
+            const totalOrders = sortedOrdersList.length;
+
+            if (totalOrders === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="6" class="p-6 text-center text-slate-500 font-semibold align-middle">
+                        <i class="fa-solid fa-folder-open text-xl mb-1 block text-slate-600"></i>
+                        無可顯示的工單資料
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                document.getElementById('current-page-text').innerText = '1';
+                document.getElementById('total-pages-text').innerText = '1';
+                document.getElementById('total-orders-text').innerText = '0';
+                document.getElementById('current-range-text').innerText = '0-0';
+
+                document.getElementById('prev-page-btn').disabled = true;
+                document.getElementById('next-page-btn').disabled = true;
+                return;
+            }
+
+            const totalPages = Math.ceil(totalOrders / PAGE_SIZE) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = Math.min(startIndex + PAGE_SIZE, totalOrders);
+            const pageData = sortedOrdersList.slice(startIndex, endIndex);
+
+            pageData.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                if (item.state === 'Abnormal' || item.state === 'Overdue') {
+                    tr.className = "bg-rose-950/30 hover:bg-rose-900/40 transition-colors duration-150";
+                } else {
+                    tr.className = "hover:bg-cyan-900/20 transition-colors duration-150";
+                }
+
+                let badgeClass = 'badge-normal';
+                let badgeText = '正常';
+                if (item.state === 'Warning') { badgeClass = 'badge-warning'; badgeText = '預警'; }
+                if (item.state === 'Abnormal') { badgeClass = 'badge-abnormal'; badgeText = '異常'; }
+                if (item.state === 'Overdue') { badgeClass = 'badge-overdue'; badgeText = '逾期'; }
+
+                // 處理序號：若有多筆（以逗號/斜線/空格分隔），轉換為換行多行顯示
+                const rawOrderSn = item.order_sn || item.order_no || item.sn || item.orderNo || item.orderSN || '-';
+                let formattedOrderSn = '-';
+                if (rawOrderSn && String(rawOrderSn).trim() !== '' && String(rawOrderSn) !== 'nan') {
+                    formattedOrderSn = String(rawOrderSn)
+                        .split(/[,，/ ]+/)
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0)
+                        .join('<br>');
+                }
+
+                tr.innerHTML = `
+                    <td class="p-1.5 font-mono text-amber-300 font-semibold align-middle leading-tight w-[8ch] min-w-[8ch] max-w-[8ch] truncate"></td>
+                    <td class="p-1.5 font-bold text-cyan-300 font-mono whitespace-nowrap align-middle w-[15ch] min-w-[15ch] max-w-[15ch] truncate"></td>
+                    <td class="p-1.5 text-slate-200 align-middle w-[10ch] min-w-[10ch] max-w-[10ch] truncate"></td>
+                    <td class="p-1.5 text-slate-300 align-middle"></td>
+                    <td class="p-1.5 font-mono text-cyan-200 font-semibold whitespace-nowrap align-middle"></td>
+                    <td class="p-1.5 text-center align-middle"><span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${badgeText}</span></td>
+                `;
+                
+                tr.children[0].innerHTML = formattedOrderSn;
+                tr.children[0].title = String(rawOrderSn) !== 'nan' ? rawOrderSn : '-'; // 滑鼠懸停顯示完整序號
+                tr.children[1].textContent = item.part || '-';
+                tr.children[1].title = item.part || '-'; // 滑鼠懸停顯示完整料號
+                tr.children[2].textContent = item.customer || '-';
+                tr.children[2].title = item.customer || '-'; // 滑鼠懸停顯示完整客戶名稱
+                tr.children[3].textContent = item.status || '-';
+                tr.children[4].textContent = item.due || '-';
+
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('current-page-text').innerText = currentPage;
+            document.getElementById('total-pages-text').innerText = totalPages;
+            document.getElementById('total-orders-text').innerText = totalOrders;
+            document.getElementById('current-range-text').innerText = `${startIndex + 1}-${endIndex}`;
+
+            document.getElementById('prev-page-btn').disabled = (currentPage === 1);
+            document.getElementById('next-page-btn').disabled = (currentPage === totalPages);
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderTablePage();
+        }
+
+        function requestAutoFullScreen() {
+            if (!document.fullscreenElement) {
+                const doc = document.documentElement;
+                if (doc.requestFullscreen) {
+                    doc.requestFullscreen().catch(() => {});
+                } else if (doc.webkitRequestFullscreen) {
+                    doc.webkitRequestFullscreen().catch(() => {});
+                }
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                requestAutoFullScreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+
+        function updateFullscreenBtnUI() {
+            const btnText = document.getElementById('fullscreen-btn-text');
+            const btnTextMobile = document.getElementById('fullscreen-btn-text-mobile');
+            const isFS = !!document.fullscreenElement;
+            
+            if (btnText) btnText.innerText = isFS ? '退出' : '全螢幕';
+            if (btnTextMobile) btnTextMobile.innerText = isFS ? '退出' : '全螢幕';
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenBtnUI();
+            setTimeout(resizeAllCharts, 150);
+        });
+
+        window.onload = function() {
+            initCharts();
+            startLiveClock();
+            loadDashboardData();
+            startCountdown();
+        };
+    </script>
+</body>
+</html>
