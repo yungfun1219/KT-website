@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* 預設隱藏整個 body，驗證通過才顯示，防止未授權時畫面閃爍 */
+        body {
+            display: none;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -352,6 +357,38 @@
 
         </main>
     </div>
+
+    <!-- 密碼驗證邏輯 -->
+    <script>
+        (function checkAccessPermission() {
+            // 可在此修改預設存取密碼
+            const CORRECT_PASSWORD = "8888"; 
+
+            // 檢查 SessionStorage，同一分頁登入過就不用重複輸入
+            if (sessionStorage.getItem('dashboard_authenticated') === 'true') {
+                document.body.style.display = 'block';
+                return;
+            }
+
+            const inputPwd = prompt("🔐 PCB 戰情指揮中心：請輸入存取密碼以繼續瀏覽：");
+
+            if (inputPwd === CORRECT_PASSWORD) {
+                sessionStorage.setItem('dashboard_authenticated', 'true');
+                document.body.style.display = 'block';
+            } else {
+                alert("❌ 密碼錯誤，拒絕存取！");
+                document.body.innerHTML = `
+                    <div style="display:flex; height:100vh; align-items:center; justify-content:center; flex-direction:column; background:#030814; color:#ff4444; font-family:sans-serif;">
+                        <h1 style="font-size: 2rem; margin-bottom: 1rem;">🔒 拒絕存取 (403 Access Denied)</h1>
+                        <p style="color: #94a3b8;">您輸入的密碼不正確，請重新整理頁面再試一次。</p>
+                        <button onclick="location.reload()" style="margin-top:1.5rem; padding: 0.5rem 1.5rem; background:#00f0ff; color:#030814; font-weight:bold; border:none; border-radius:4px; cursor:pointer;">重新整理</button>
+                    </div>
+                `;
+                document.body.style.display = 'block';
+                throw new Error("Access Denied: Incorrect password.");
+            }
+        })();
+    </script>
 
     <script>
         let stageChart, custChart, outsourceChart, dueChart;
