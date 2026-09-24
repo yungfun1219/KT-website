@@ -1,38 +1,38 @@
 {
-  "lastUpdated": "2026-09-18 11:49:11",
+  "lastUpdated": "2026-09-22 10:33:21",
   "kpi": {
-    "total": 40,
+    "total": 39,
     "normal": 31,
-    "warning": 5,
+    "warning": 4,
     "abnormal": 4
   },
   "stageData": [
     {
-      "name": "外包/其他",
+      "name": "QC/測試",
       "value": 13
     },
     {
-      "name": "QC/測試",
-      "value": 11
+      "name": "外包/其他",
+      "value": 12
     },
     {
       "name": "表面處理",
-      "value": 4
-    },
-    {
-      "name": "加工/CNC/模沖",
-      "value": 4
-    },
-    {
-      "name": "文字工站",
-      "value": 3
+      "value": 5
     },
     {
       "name": "待料/暫停",
       "value": 3
     },
     {
+      "name": "加工/CNC/模沖",
+      "value": 2
+    },
+    {
       "name": "防焊工站",
+      "value": 2
+    },
+    {
+      "name": "文字工站",
       "value": 1
     },
     {
@@ -53,7 +53,7 @@
       3,
       4,
       5,
-      13
+      12
     ]
   },
   "outsourceData": {
@@ -81,13 +81,13 @@
       "未排交期"
     ],
     "values": [
-      3,
-      0,
       4,
-      11,
-      7,
+      0,
       12,
-      3
+      5,
+      2,
+      12,
+      4
     ]
   },
   "orders": [
@@ -167,7 +167,7 @@
       "order_sn": "12678",
       "part": "KT-280-0024B",
       "customer": "威力暘",
-      "status": "模沖(模具異常需線割) (黑漆黑字) (週期更新2638) (治具測試)",
+      "status": "模沖(模具異常需線割) (預計10/1修復10/3回廠) (黑漆黑字) (週期更新2638) (治具測試)",
       "stage": "加工/CNC/模沖",
       "due": "2026/10/1",
       "state": "Abnormal"
@@ -185,7 +185,7 @@
       "order_sn": "12690",
       "part": "KT-131-0037C",
       "customer": "玉景",
-      "status": "模沖  ★(防焊精準度) (化金→回廠→文字)  ★(防焊太陽霧黑印刷2次(第一次預烤80℃10分、第二次預烤80℃40分)  ★防焊Pad不能有側蝕，不能有油墨鋸齒現象)  ★化金 (Pad不能有側蝕，不能有油墨鋸齒現象) (本次天隆)",
+      "status": "QC  ★(防焊精準度) (化金→回廠→文字)  ★(防焊太陽霧黑印刷2次(第一次預烤80℃10分、第二次預烤80℃40分)  ★防焊Pad不能有側蝕，不能有油墨鋸齒現象)  ★化金 (Pad不能有側蝕，不能有油墨鋸齒現象) (本次天隆)",
       "stage": "防焊工站",
       "due": "2026/9/29",
       "state": "Normal"
@@ -194,8 +194,8 @@
       "order_sn": "12670",
       "part": "KT-280-0025B",
       "customer": "威力暘",
-      "status": "V-CUT (上批未鑽靶1片OK) (黑漆黑字) (週期更新2638) (治具測試)",
-      "stage": "加工/CNC/模沖",
+      "status": "QC (上批未鑽靶1片OK) (黑漆黑字) (週期更新2638) (治具測試)",
+      "stage": "QC/測試",
       "due": "2026/9/30",
       "state": "Normal"
     },
@@ -203,8 +203,8 @@
       "order_sn": "12615",
       "part": "KT-284-0001C",
       "customer": "巨奕",
-      "status": "文字 (治具測試) (週期修補2643)",
-      "stage": "文字工站",
+      "status": "噴錫 (治具測試) (週期修補2643)",
+      "stage": "表面處理",
       "due": "2026/10/26",
       "state": "Normal"
     },
@@ -239,7 +239,7 @@
       "order_sn": "12721",
       "part": "KT-F083-0044A",
       "customer": "廣美",
-      "status": "(大陸-捷多邦) (捷多邦-測試) 預計???回廠",
+      "status": "QC (大陸-捷多邦) (捷多邦-測試) 9/15回廠",
       "stage": "QC/測試",
       "due": "2026/10/6",
       "state": "Normal"
@@ -275,9 +275,9 @@
       "order_sn": "12710,\n12711,\n12712",
       "part": "KT-277-0007B",
       "customer": "福安",
-      "status": "OSP(首批) V-CUT(等待) (治具測試) (週期修補2636) (OSP)",
+      "status": "V-CUT(等待) 9/21 OK(首批) (治具測試) (週期修補2636) (OSP)",
       "stage": "加工/CNC/模沖",
-      "due": "2026/9/24",
+      "due": "2026/10/2",
       "state": "Warning"
     },
     {
@@ -293,8 +293,8 @@
       "order_sn": "12729,\n12730",
       "part": "KT-234-0002A\n(KT-234-0002A-1)",
       "customer": "昱奕",
-      "status": "CNC(全貿) (單報不出) (注意斷短路問題)",
-      "stage": "加工/CNC/模沖",
+      "status": "QC (單報不出) (注意斷短路問題)",
+      "stage": "QC/測試",
       "due": "2026/9/29",
       "state": "Warning"
     },
@@ -317,15 +317,6 @@
       "state": "Normal"
     },
     {
-      "order_sn": "12741",
-      "part": "KT-023-0076A",
-      "customer": "廣美",
-      "status": "文字 (OSP)",
-      "stage": "文字工站",
-      "due": "2026/9/24",
-      "state": "Warning"
-    },
-    {
       "order_sn": "12748",
       "part": "KT-F083-0026B",
       "customer": "廣美",
@@ -338,7 +329,7 @@
       "order_sn": "12743",
       "part": "KT-F083-0034B",
       "customer": "廣美",
-      "status": "(大陸-捷多邦) (捷多邦-治具測試)",
+      "status": "(大陸-捷多邦) (捷多邦-治具測試) (9/21出貨)預計????回廠",
       "stage": "QC/測試",
       "due": "2026/9/24",
       "state": "Normal"
@@ -347,8 +338,8 @@
       "order_sn": "12742",
       "part": "KT-F049-0023A",
       "customer": "奇麟",
-      "status": "( 大陸-捷多邦) 預計????回廠",
-      "stage": "外包/其他",
+      "status": "(大陸-捷多邦) (捷多邦-飛針) (防焊)預計9/24出貨",
+      "stage": "防焊工站",
       "due": "2026/9/30",
       "state": "Normal"
     },
@@ -367,7 +358,7 @@
       "customer": "昱奕",
       "status": "待料 (預計9/24到貨) (2oz注意防焊處短路) (治具測試)",
       "stage": "待料/暫停",
-      "due": "2026/9/17",
+      "due": "9/22 (延至10/15)",
       "state": "Abnormal"
     },
     {
@@ -404,6 +395,51 @@
       "status": "(大陸-邑金鑠) (週期修補26??)",
       "stage": "外包/其他",
       "due": "2026/11/26",
+      "state": "Normal"
+    },
+    {
+      "order_sn": "",
+      "part": "待料(待發料)",
+      "customer": "CNC定位孔",
+      "status": "線路(發料中)",
+      "stage": "線路工站",
+      "due": "文字",
+      "state": "Normal"
+    },
+    {
+      "order_sn": "",
+      "part": "4",
+      "customer": "未指定",
+      "status": "",
+      "stage": "外包/其他",
+      "due": "1970/1/1",
+      "state": "Normal"
+    },
+    {
+      "order_sn": "",
+      "part": "555",
+      "customer": "未指定",
+      "status": "",
+      "stage": "外包/其他",
+      "due": "1970/1/1",
+      "state": "Normal"
+    },
+    {
+      "order_sn": "",
+      "part": "3組",
+      "customer": "雙面銅基板",
+      "status": "華宜FR4",
+      "stage": "外包/其他",
+      "due": "",
+      "state": "Normal"
+    },
+    {
+      "order_sn": "",
+      "part": "10組\n(回廠*8組)",
+      "customer": "大陸-世學",
+      "status": "KT / FR4",
+      "stage": "外包/其他",
+      "due": "",
       "state": "Normal"
     }
   ]
