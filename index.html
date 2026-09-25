@@ -400,14 +400,18 @@
 
                 const data = await response.json();
                 
-                if (Array.isArray(data)) {
-                    allProducts = data;
-                    fileTimeIndicator.innerText = `檔案更新時間: 未提供 (標準 JSON)`;
-                } else {
-                    allProducts = data.products || [];
-                    fileTimeIndicator.innerText = `檔案更新時間: ${data.file_last_modified || '未知'}`;
-                }
+                let rawList = Array.isArray(data) ? data : (data.products || []);
+                
+                allProducts = rawList.map(item => {
+                    const bhNo = item['柏匯料號'] || '';
+                    const isFR4 = bhNo.toUpperCase().startsWith('KT-F');
+                    return {
+                        ...item,
+                        '板材類別': isFR4 ? 'FR4' : (item['板材類別'] || '金屬基板')
+                    };
+                });
 
+                fileTimeIndicator.innerText = `檔案更新時間: ${data.file_last_modified || '即時'}`;
                 statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-online";
                 fileTimeIndicator.className = "font-semibold text-emerald-400";
 
