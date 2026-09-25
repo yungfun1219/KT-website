@@ -8,11 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         body {
             background-color: #030814;
             color: #d1e8ff;
             font-family: 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -127,28 +133,28 @@
         }
     </style>
 </head>
-<body class="p-2 sm:p-4">
+<body class="p-2 sm:p-3 flex flex-col h-screen overflow-hidden">
 
-    <!-- 頂部標題、現在時間（正中間上方）、檔案更新時間與統計 KPI -->
-    <header class="rounded-lg p-3.5 mb-3 flex flex-col lg:flex-row items-center justify-between gap-4 relative">
+    <!-- 頂部標題、現在時間與統計 KPI (標籤上下置中) -->
+    <header class="rounded-lg p-3 mb-2.5 flex flex-col lg:flex-row items-center justify-between gap-3 relative shrink-0">
         
         <!-- 左側：標題、全螢幕與更新時間 -->
         <div class="flex items-center gap-3 w-full lg:w-auto">
             <i class="fa-solid fa-microchip text-3xl text-cyan-400 animate-pulse shrink-0"></i>
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-3">
-                    <h1 class="text-2xl font-bold tracking-wider text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">
                         PCB 產品規格與工程資料查詢系統
                     </h1>
                     <!-- 全螢幕按鈕 -->
-                    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="tech-card px-3 py-1.5 text-cyan-400 hover:text-white hover:border-cyan-400 text-sm font-bold flex items-center gap-1.5 transition-all">
+                    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="tech-card px-2.5 py-1 text-cyan-400 hover:text-white hover:border-cyan-400 text-xs font-bold flex items-center gap-1.5 transition-all">
                         <i class="fa-solid fa-expand text-xs"></i>
                         <span id="fullscreen-btn-text">全螢幕</span>
                     </button>
                 </div>
 
                 <!-- 檔案更新時間 + 自動更新倒數 -->
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-300 mt-2">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-300 mt-1">
                     <div class="flex items-center gap-2">
                         <span id="connection-status" class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-online"></span>
                         <span id="file-update-time" class="font-semibold text-slate-300">檔案更新時間: 讀取中...</span>
@@ -156,164 +162,166 @@
                     
                     <span class="text-slate-600 hidden sm:inline">|</span>
 
-                    <div class="flex items-center gap-1.5 text-amber-400 font-semibold font-mono bg-amber-950/40 border border-amber-500/40 px-2.5 py-0.5 rounded">
+                    <div class="flex items-center gap-1.5 text-amber-400 font-semibold font-mono bg-amber-950/40 border border-amber-500/40 px-2 py-0.5 rounded text-xs">
                         <i class="fa-solid fa-hourglass-half animate-spin text-xs"></i>
                         <span>自動更新倒數:</span>
-                        <span id="countdown-timer" class="font-bold text-amber-300 text-base">60:00</span>
+                        <span id="countdown-timer" class="font-bold text-amber-300 text-sm">60:00</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 正中間上方：現在時間 -->
-        <div class="w-full lg:w-auto lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-3.5 flex justify-center">
-            <div class="flex items-center bg-slate-900/90 border border-cyan-500/60 px-4 py-1.5 rounded-md text-cyan-300 font-mono shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+        <div class="w-full lg:w-auto lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 flex justify-center pointer-events-none">
+            <div class="flex items-center bg-slate-900/90 border border-cyan-500/60 px-3.5 py-1.5 rounded-md text-cyan-300 font-mono shadow-[0_0_15px_rgba(0,240,255,0.2)] pointer-events-auto">
                 <i class="fa-regular fa-clock mr-2 text-cyan-400 animate-pulse"></i>
-                <span id="current-time" class="text-lg font-extrabold tracking-wider text-cyan-300">
+                <span id="current-time" class="text-base font-extrabold tracking-wider text-cyan-300">
                     現在時間: 載入中...
                 </span>
             </div>
         </div>
 
-        <!-- 右側：Metric KPI Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto shrink-0 lg:mt-6">
-            <div class="tech-card px-3.5 py-2 flex items-center gap-2.5">
+        <!-- 右側：4 個 KPI 統計卡片 (明確上下居中對齊 items-center) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full lg:w-auto shrink-0 items-center my-auto">
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 h-full">
                 <i class="fa-solid fa-boxes-stacked text-cyan-400 text-xl"></i>
-                <div>
-                    <div class="text-xs text-slate-400">總產品數</div>
-                    <div id="kpi-total" class="text-xl font-bold text-cyan-400">0</div>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">總產品數</div>
+                    <div id="kpi-total" class="text-lg font-bold text-cyan-400 leading-tight">0</div>
                 </div>
             </div>
 
-            <div class="tech-card px-3.5 py-2 flex items-center gap-2.5 border-emerald-500/40">
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 border-emerald-500/40 h-full">
                 <i class="fa-solid fa-filter text-emerald-400 text-xl"></i>
-                <div>
-                    <div class="text-xs text-slate-400">當前篩選</div>
-                    <div id="kpi-filtered" class="text-xl font-bold text-emerald-400">0</div>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">當前篩選</div>
+                    <div id="kpi-filtered" class="text-lg font-bold text-emerald-400 leading-tight">0</div>
                 </div>
             </div>
 
-            <div class="tech-card px-3.5 py-2 flex items-center gap-2.5 border-amber-500/40">
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 border-amber-500/40 h-full">
                 <i class="fa-solid fa-layer-group text-amber-400 text-xl"></i>
-                <div>
-                    <div class="text-xs text-slate-400">金屬基板數</div>
-                    <div id="kpi-metal-pcb" class="text-xl font-bold text-amber-400">0</div>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">金屬基板數</div>
+                    <div id="kpi-metal-pcb" class="text-lg font-bold text-amber-400 leading-tight">0</div>
                 </div>
             </div>
 
-            <div class="tech-card px-3.5 py-2 flex items-center gap-2.5 border-purple-500/40">
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 border-purple-500/40 h-full">
                 <i class="fa-solid fa-microchip text-purple-400 text-xl"></i>
-                <div>
-                    <div class="text-xs text-slate-400">FR4 板數</div>
-                    <div id="kpi-fr4-pcb" class="text-xl font-bold text-purple-400">0</div>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">FR4 板數</div>
+                    <div id="kpi-fr4-pcb" class="text-lg font-bold text-purple-400 leading-tight">0</div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- 主體內容區塊 -->
-    <main class="flex-1 flex flex-col gap-3 min-h-0">
+    <!-- 主體內容區塊：填滿剩餘高度 -->
+    <main class="flex-1 flex flex-col gap-2.5 min-h-0 overflow-hidden">
 
         <!-- 搜尋與過濾工具列 -->
-        <div class="tech-card p-3 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div class="tech-card p-2.5 flex flex-col md:flex-row items-center justify-between gap-2.5 shrink-0">
             <div class="relative w-full md:w-1/2">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 text-base"></i>
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 text-sm"></i>
                 <input type="text" id="searchInput" onkeyup="handleSearch()" 
                        placeholder="輸入 柏匯料號 / 客戶料號 / 底片編號 / 板材類別 / 使用材料 快速搜尋..." 
-                       class="w-full pl-10 pr-8 py-2 bg-slate-900/80 border border-cyan-800/80 rounded text-cyan-200 placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono">
+                       class="w-full pl-9 pr-8 py-1.5 bg-slate-900/80 border border-cyan-800/80 rounded text-cyan-200 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono">
                 <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-300">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <div class="flex items-center gap-3 w-full md:w-auto justify-end text-sm text-slate-300">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end text-xs sm:text-sm text-slate-300">
                 <span class="text-slate-400"><i class="fa-solid fa-arrows-rotate mr-1 text-cyan-400"></i>每 60 分鐘自動對齊 JSON 庫</span>
-                <button onclick="manualRefresh()" class="tech-card px-3.5 py-1.5 text-cyan-300 hover:text-white hover:border-cyan-400 transition-all flex items-center gap-1.5 font-semibold">
+                <button onclick="manualRefresh()" class="tech-card px-3 py-1 text-cyan-300 hover:text-white hover:border-cyan-400 transition-all flex items-center gap-1.5 font-semibold text-xs">
                     <i class="fa-solid fa-rotate text-xs"></i> 立即重載
                 </button>
             </div>
         </div>
 
-        <!-- 產品表格區塊 -->
-        <div class="tech-card p-3.5 flex-1 flex flex-col min-h-0">
-            <div class="tech-title mb-3">
+        <!-- 產品表格區塊：彈性縮放填滿 -->
+        <div class="tech-card p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div class="tech-title mb-2 shrink-0">
                 <span><i class="fa-solid fa-table-list mr-2 text-cyan-400"></i>PCB 產品生產規格與加工資料表</span>
-                <span id="page-info-count" class="text-sm text-slate-400 font-normal font-mono">
+                <span id="page-info-count" class="text-xs sm:text-sm text-slate-400 font-normal font-mono">
                     顯示第 <span id="current-range-text">0-0</span> 筆，共 <span id="total-orders-text">0</span> 筆
                 </span>
             </div>
 
-            <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-1">
-                <table class="w-full text-sm text-center border-collapse min-w-[1300px]">
+            <!-- 表格主體 (內部自動可垂直捲動) -->
+            <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-1 min-h-0">
+                <table class="w-full text-xs sm:text-sm text-center border-collapse min-w-[1200px]">
                     <thead class="text-cyan-300 bg-cyan-950/90 sticky top-0 backdrop-blur-md z-10 border-b border-cyan-800/60">
                         <tr>
-                            <th class="p-3 sort-header rounded-l w-[12%]" onclick="sortTable('柏匯料號')">
+                            <th class="p-2.5 sort-header rounded-l w-[12%]" onclick="sortTable('柏匯料號')">
                                 柏匯料號 <span id="sort-icon-柏匯料號" class="text-xs ml-0.5">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[16%]" onclick="sortTable('客戶料號')">
+                            <th class="p-2.5 sort-header w-[16%]" onclick="sortTable('客戶料號')">
                                 客戶料號 <span id="sort-icon-客戶料號" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[6%]" onclick="sortTable('形狀')">
+                            <th class="p-2.5 sort-header w-[6%]" onclick="sortTable('形狀')">
                                 形狀 <span id="sort-icon-形狀" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[7%]" onclick="sortTable('單片長')">
+                            <th class="p-2.5 sort-header w-[7%]" onclick="sortTable('單片長')">
                                 單片長 <span id="sort-icon-單片長" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[7%]" onclick="sortTable('單片寬')">
+                            <th class="p-2.5 sort-header w-[7%]" onclick="sortTable('單片寬')">
                                 單片寬 <span id="sort-icon-單片寬" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[6%]" onclick="sortTable('排版數量')">
+                            <th class="p-2.5 sort-header w-[6%]" onclick="sortTable('排版數量')">
                                 排版數 <span id="sort-icon-排版數量" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[10%]" onclick="sortTable('廠牌型號')">
+                            <th class="p-2.5 sort-header w-[11%]" onclick="sortTable('廠牌型號')">
                                 使用材料 <span id="sort-icon-廠牌型號" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[8%]" onclick="sortTable('尺寸')">
+                            <th class="p-2.5 sort-header w-[8%]" onclick="sortTable('尺寸')">
                                 發料尺寸 <span id="sort-icon-尺寸" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[5%]" onclick="sortTable('瓦數')">
+                            <th class="p-2.5 sort-header w-[5%]" onclick="sortTable('瓦數')">
                                 瓦數 <span id="sort-icon-瓦數" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[5%]" onclick="sortTable('銅箔厚度')">
+                            <th class="p-2.5 sort-header w-[5%]" onclick="sortTable('銅箔厚度')">
                                 銅厚 <span id="sort-icon-銅箔厚度" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[5%]" onclick="sortTable('板材厚度')">
+                            <th class="p-2.5 sort-header w-[5%]" onclick="sortTable('板材厚度')">
                                 板厚 <span id="sort-icon-板材厚度" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header w-[13%]" onclick="sortTable('防焊')">
+                            <th class="p-2.5 sort-header w-[12%]" onclick="sortTable('防焊')">
                                 製程規格 <span id="sort-icon-防焊" class="text-xs">↕</span>
                             </th>
-                            <th class="p-3 sort-header rounded-r w-[6%] text-center whitespace-nowrap" onclick="sortTable('建立日期')">
+                            <th class="p-2.5 sort-header rounded-r w-[6%] text-center whitespace-nowrap" onclick="sortTable('建立日期')">
                                 建立日期 <span id="sort-icon-建立日期" class="text-xs">↕</span>
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="productTableBody" class="divide-y divide-cyan-900/30 font-mono text-sm">
+                    <tbody id="productTableBody" class="divide-y divide-cyan-900/30 font-mono text-xs sm:text-sm">
                         <!-- 資料動態生成 -->
                     </tbody>
                 </table>
             </div>
 
             <!-- 分頁導覽列 -->
-            <div class="flex flex-col sm:flex-row items-center justify-between border-t border-cyan-900/50 pt-2.5 mt-2 text-sm gap-2">
+            <div class="flex flex-col sm:flex-row items-center justify-between border-t border-cyan-900/50 pt-2 mt-2 text-xs sm:text-sm gap-2 shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="text-slate-400">每頁顯示：</span>
-                    <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-cyan-950 border border-cyan-800 text-cyan-300 rounded px-2.5 py-1 focus:outline-none text-sm">
-                        <option value="15" selected>15 筆</option>
-                        <option value="30">30 筆</option>
+                    <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="bg-cyan-950 border border-cyan-800 text-cyan-300 rounded px-2 py-1 focus:outline-none text-xs sm:text-sm">
+                        <option value="auto" selected>自動適應</option>
+                        <option value="10">10 筆</option>
+                        <option value="15">15 筆</option>
+                        <option value="25">25 筆</option>
                         <option value="50">50 筆</option>
-                        <option value="100">100 筆</option>
                     </select>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="prev-page-btn" onclick="changePage(-1)" class="tech-card px-3.5 py-1.5 text-cyan-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 font-semibold">
+                    <button id="prev-page-btn" onclick="changePage(-1)" class="tech-card px-3 py-1 text-cyan-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 font-semibold text-xs sm:text-sm">
                         <i class="fa-solid fa-chevron-left text-xs"></i> 上一頁
                     </button>
-                    <span class="text-cyan-300 font-mono px-3 text-base">
+                    <span class="text-cyan-300 font-mono px-3 text-sm sm:text-base">
                         <span id="current-page-text">1</span> / <span id="total-pages-text">1</span>
                     </span>
-                    <button id="next-page-btn" onclick="changePage(1)" class="tech-card px-3.5 py-1.5 text-cyan-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 font-semibold">
+                    <button id="next-page-btn" onclick="changePage(1)" class="tech-card px-3 py-1 text-cyan-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 font-semibold text-xs sm:text-sm">
                         下一頁 <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
@@ -324,6 +332,7 @@
 
     <script>
         let PAGE_SIZE = 15;
+        let isAutoPageSize = true;
         let currentPage = 1;
         let allProducts = [];
         let filteredProducts = [];
@@ -387,6 +396,19 @@
         function manualRefresh() {
             countdownSeconds = REFRESH_INTERVAL_SECONDS;
             loadProductData();
+        }
+
+        // 動態計算當前螢幕最佳每頁資料筆數
+        function autoCalculatePageSize() {
+            if (!isAutoPageSize) return;
+            const tableContainer = document.querySelector('.custom-scrollbar');
+            if (tableContainer) {
+                const containerHeight = tableContainer.clientHeight;
+                const headerHeight = 45; // 表頭高度估算
+                const rowHeight = 58;    // 每行資料平均高度估算
+                const calculated = Math.floor((containerHeight - headerHeight) / rowHeight);
+                PAGE_SIZE = Math.max(5, calculated || 10);
+            }
         }
 
         async function loadProductData() {
@@ -514,6 +536,8 @@
         }
 
         function renderTablePage() {
+            autoCalculatePageSize();
+            
             const totalOrders = filteredProducts.length;
             const totalPages = Math.ceil(totalOrders / PAGE_SIZE) || 1;
 
@@ -551,31 +575,31 @@
                     if (finish) row2Badges.push(`<span class="spec-badge badge-finish">表面:${finish}</span>`);
 
                     tr.innerHTML = `
-                        <td class="p-3 font-bold text-cyan-300 text-center whitespace-nowrap text-base">
+                        <td class="p-2 font-bold text-cyan-300 text-center whitespace-nowrap text-sm">
                             <div class="text-cyan-300 font-bold">${item['柏匯料號'] || '-'}</div>
-                            <div class="text-xs text-cyan-400 font-semibold my-1 flex items-center justify-center gap-1.5 flex-wrap">
+                            <div class="text-[11px] text-cyan-400 font-semibold my-0.5 flex items-center justify-center gap-1 flex-wrap">
                                 <span>底片: ${item['底片編號'] || '-'}</span>
                                 <span class="spec-badge ${boardBadgeClass}">${boardType}</span>
                             </div>
                         </td>
-                        <td class="p-3 text-slate-200 font-sans text-center break-all leading-relaxed font-medium text-sm">
+                        <td class="p-2 text-slate-200 font-sans text-center break-all leading-relaxed font-medium text-xs sm:text-sm">
                             ${item['客戶料號'] || '-'}
                         </td>
-                        <td class="p-3 text-slate-300 text-center">${item['形狀'] || '-'}</td>
-                        <td class="p-3 text-cyan-300 text-center font-mono font-semibold text-base">${item['單片長'] || '-'}</td>
-                        <td class="p-3 text-cyan-300 text-center font-mono font-semibold text-base">${item['單片寬'] || '-'}</td>
-                        <td class="p-3 text-center text-cyan-300 font-bold whitespace-nowrap text-base">
+                        <td class="p-2 text-slate-300 text-center">${item['形狀'] || '-'}</td>
+                        <td class="p-2 text-cyan-300 text-center font-mono font-semibold">${item['單片長'] || '-'}</td>
+                        <td class="p-2 text-cyan-300 text-center font-mono font-semibold">${item['單片寬'] || '-'}</td>
+                        <td class="p-2 text-center text-cyan-300 font-bold whitespace-nowrap">
                             ${item['排版數量'] ? `${item['排版數量']}` : '-'}
                         </td>
-                        <td class="p-3 text-slate-200 text-center font-sans text-sm">
+                        <td class="p-2 text-slate-200 text-center font-sans text-xs">
                             ${item['廠牌型號'] || item['使用材料'] || '-'}
                         </td>
-                        <td class="p-3 text-cyan-200 text-center whitespace-nowrap text-sm">${item['尺寸'] || '-'}</td>
-                        <td class="p-3 text-amber-300 font-bold text-center whitespace-nowrap text-base">${item['瓦數'] || '-'}</td>
-                        <td class="p-3 text-emerald-300 font-bold text-center whitespace-nowrap text-base">${item['銅箔厚度'] || '-'}</td>
-                        <td class="p-3 text-cyan-300 font-bold text-center whitespace-nowrap text-base">${item['板材厚度'] || '-'}</td>
-                        <td class="p-3 text-center">
-                            <div class="flex flex-col items-center gap-1.5">
+                        <td class="p-2 text-cyan-200 text-center whitespace-nowrap text-xs">${item['尺寸'] || '-'}</td>
+                        <td class="p-2 text-amber-300 font-bold text-center whitespace-nowrap">${item['瓦數'] || '-'}</td>
+                        <td class="p-2 text-emerald-300 font-bold text-center whitespace-nowrap">${item['銅箔厚度'] || '-'}</td>
+                        <td class="p-2 text-cyan-300 font-bold text-center whitespace-nowrap">${item['板材厚度'] || '-'}</td>
+                        <td class="p-2 text-center">
+                            <div class="flex flex-col items-center gap-1">
                                 <div class="flex flex-wrap justify-center gap-1">
                                     ${row1Badges.length > 0 ? row1Badges.join('') : ''}
                                 </div>
@@ -585,7 +609,7 @@
                                 ${row1Badges.length === 0 && row2Badges.length === 0 ? '-' : ''}
                             </div>
                         </td>
-                        <td class="p-3 text-center text-slate-400 text-xs whitespace-nowrap font-mono">
+                        <td class="p-2 text-center text-slate-400 text-xs whitespace-nowrap font-mono">
                             ${item['建立日期'] ? item['建立日期'].split(' ')[0] : '-'}
                         </td>
                     `;
@@ -609,7 +633,12 @@
         }
 
         function changePageSize(size) {
-            PAGE_SIZE = parseInt(size, 10);
+            if (size === 'auto') {
+                isAutoPageSize = true;
+            } else {
+                isAutoPageSize = false;
+                PAGE_SIZE = parseInt(size, 10);
+            }
             currentPage = 1;
             renderTablePage();
         }
@@ -653,6 +682,13 @@
         }
 
         document.addEventListener('fullscreenchange', updateFullscreenBtnUI);
+
+        // 視窗縮放時自動重新計算筆數
+        window.onresize = function() {
+            if (isAutoPageSize) {
+                renderTablePage();
+            }
+        };
 
         window.onload = function() {
             startLiveClockAndCountdown();
