@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成品存貨查詢系統 (KT) - 柏匯企業</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: #030814;
+            color: #d1e8ff;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tech-card {
+            background: rgba(8, 20, 42, 0.75);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.12), 0 6px 25px rgba(0, 240, 255, 0.15);
+        }
+
+        .tech-title {
+            color: #70d6ff;
+            border-left: 4px solid #00f0ff;
+            padding-left: 12px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(10, 28, 58, 0.95) 0%, rgba(3, 8, 20, 0.9) 100%);
+            border-bottom: 2px solid #00f0ff;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(5, 15, 30, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.4);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+
+        .pulse-online {
+            box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            70% { box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .sort-header {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s, background-color 0.2s;
+            text-align: center;
+        }
+        .sort-header:hover {
+            color: #ffffff;
+            background-color: rgba(0, 240, 255, 0.15);
+        }
+
+        .badge-location {
+            background: rgba(14, 165, 233, 0.2);
+            border: 1px solid #0ea5e9;
+            color: #7dd3fc;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .badge-qty {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #34d399;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .nav-tab-active {
+            background: rgba(0, 240, 255, 0.25);
+            border: 1px solid #00f0ff;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+        .nav-tab-inactive {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: #94a3b8;
+        }
+        .nav-tab-inactive:hover {
+            border-color: #00f0ff;
+            color: #00f0ff;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-3 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header 區塊：完全對齊設計圖 -->
+    <header class="rounded-lg p-3 mb-2.5 flex flex-col lg:flex-row items-center justify-between gap-3 relative shrink-0 z-20">
+        
+        <!-- 左側：標題、頁籤與全螢幕按鈕 -->
+        <div class="flex items-center gap-3 w-full lg:w-auto">
+            <i class="fa-solid fa-microchip text-3xl text-cyan-400 animate-pulse shrink-0"></i>
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-wider text-cyan-400 drop-shadow-[0_0_10px_rgba(0,240,255,0.8)]">
+                        產品資料查詢系統
+                    </h1>
+
+                    <!-- 切換頁籤 -->
+                    <div class="flex items-center gap-1.5 ml-2">
+                        <a href="index.html" class="nav-tab-inactive px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all">
+                            <i class="fa-solid fa-list-check"></i> 產品規格
+                        </a>
+                        <span class="nav-tab-active px-3 py-1 rounded text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-boxes-packing"></i> 成品庫存
+                        </span>
+                    </div>
+
+                    <!-- 全螢幕按鈕 -->
+                    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="tech-card px-2.5 py-1 text-cyan-400 hover:text-white hover:border-cyan-400 text-xs font-bold flex items-center gap-1.5 transition-all ml-auto sm:ml-0">
+                        <i class="fa-solid fa-expand text-xs"></i>
+                        <span id="fullscreen-btn-text">全螢幕</span>
+                    </button>
+                </div>
+
+                <!-- 檔案更新時間與自動更新倒數 -->
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-300 mt-1">
+                    <div class="flex items-center gap-2">
+                        <span id="connection-status" class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-online"></span>
+                        <span id="file-update-time" class="font-semibold text-slate-300">檔案更新時間: 讀取中...</span>
+                    </div>
+                    
+                    <span class="text-slate-600 hidden sm:inline">|</span>
+
+                    <div class="flex items-center gap-1.5 text-amber-400 font-semibold font-mono bg-amber-950/40 border border-amber-500/40 px-2 py-0.5 rounded text-xs">
+                        <i class="fa-solid fa-hourglass-half animate-spin text-xs"></i>
+                        <span>自動更新倒數:</span>
+                        <span id="countdown-timer" class="font-bold text-amber-300 text-sm">60:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 正中間：現在時間外框標籤 -->
+        <div class="w-full lg:w-auto lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 flex justify-center pointer-events-none">
+            <div class="flex items-center bg-slate-900/90 border border-cyan-500/60 px-3.5 py-1.5 rounded-md text-cyan-300 font-mono shadow-[0_0_15px_rgba(0,240,255,0.2)] pointer-events-auto">
+                <i class="fa-regular fa-clock mr-2 text-cyan-400 animate-pulse"></i>
+                <span id="current-time" class="text-base font-extrabold tracking-wider text-cyan-300">
+                    現在時間: 載入中...
+                </span>
+            </div>
+        </div>
+
+        <!-- 右側：庫存 KPI 卡片 -->
+        <div class="grid grid-cols-3 gap-2 w-full lg:w-auto shrink-0 items-center my-auto">
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 h-full">
+                <i class="fa-solid fa-boxes-stacked text-cyan-400 text-xl"></i>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">總有效品項</div>
+                    <div id="kpi-total" class="text-lg font-bold text-cyan-400 leading-tight">0</div>
+                </div>
+            </div>
+
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 border-emerald-500/40 h-full">
+                <i class="fa-solid fa-filter text-emerald-400 text-xl"></i>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">當前篩選</div>
+                    <div id="kpi-filtered" class="text-lg font-bold text-emerald-400 leading-tight">0</div>
+                </div>
+            </div>
+
+            <div class="tech-card px-3 py-2 flex items-center justify-center gap-2.5 border-amber-500/40 h-full">
+                <i class="fa-solid fa-cubes text-amber-400 text-xl"></i>
+                <div class="text-left">
+                    <div class="text-xs text-slate-400 whitespace-nowrap">存貨總計</div>
+                    <div id="kpi-total-qty" class="text-lg font-bold text-amber-400 leading-tight">0</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 搜尋列 -->
+    <div class="tech-card p-2.5 flex flex-col md:flex-row items-center justify-between gap-2.5 shrink-0 z-10 mb-2.5">
+        <div class="relative w-full md:w-1/2">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 text-sm"></i>
+            <input type="text" id="searchInput" onkeyup="handleSearch()" 
+                   placeholder="請輸入【料號】或 儲位 / 備註 進行快速查詢..." 
+                   class="w-full pl-9 pr-8 py-1.5 bg-slate-900/90 border border-cyan-800 rounded text-cyan-200 placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all font-mono">
+            <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-300">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto justify-end text-xs sm:text-sm text-slate-300">
+            <span class="text-slate-400"><i class="fa-solid fa-arrows-rotate mr-1 text-cyan-400"></i>對齊 inventory_kt.json</span>
+            <button onclick="manualRefresh()" class="tech-card px-3 py-1 text-cyan-300 hover:text-white hover:border-cyan-400 transition-all flex items-center gap-1.5 font-semibold text-xs">
+                <i class="fa-solid fa-rotate text-xs"></i> 立即重載
+            </button>
+        </div>
+    </div>
+
+    <!-- 表格內容區 -->
+    <main class="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div class="tech-card p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div class="tech-title mb-2 shrink-0">
+                <span><i class="fa-solid fa-table-list mr-2 text-cyan-400"></i>成品存貨明細表</span>
+                <span id="page-info-count" class="text-xs sm:text-sm text-slate-400 font-normal font-mono">
+                    共 <span id="total-orders-text" class="text-cyan-300 font-bold">0</span> 筆資料
+                </span>
+            </div>
+
+            <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar pr-1 min-h-0">
+                <table class="w-full text-xs sm:text-sm text-center border-collapse min-w-[850px]">
+                    <thead class="text-cyan-300 bg-cyan-950/90 sticky top-0 backdrop-blur-md z-10 border-b border-cyan-800/60 shadow-md">
+                        <tr>
+                            <th class="p-2.5 sort-header w-[8%]" onclick="sortTable('序號')">序號 <span id="sort-icon-序號">↕</span></th>
+                            <th class="p-2.5 sort-header w-[15%]" onclick="sortTable('日期')">日期 <span id="sort-icon-日期">↕</span></th>
+                            <th class="p-2.5 sort-header w-[27%]" onclick="sortTable('料號')">料號 <span id="sort-icon-料號">↕</span></th>
+                            <th class="p-2.5 sort-header w-[15%]" onclick="sortTable('儲位')">儲位 <span id="sort-icon-儲位">↕</span></th>
+                            <th class="p-2.5 sort-header w-[15%]" onclick="sortTable('可用存貨')">可用存貨 <span id="sort-icon-可用存貨">↕</span></th>
+                            <th class="p-2.5 sort-header w-[20%]" onclick="sortTable('備註')">備註 <span id="sort-icon-備註">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody" class="divide-y divide-cyan-900/30 font-mono text-xs sm:text-sm">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let allInventory = [];
+        let filteredInventory = [];
+        let currentSortField = '序號';
+        let isAscending = true;
+
+        const REFRESH_INTERVAL_SECONDS = 3600;
+        let countdownSeconds = REFRESH_INTERVAL_SECONDS;
+
+        function formatDateTime(date) {
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        function startLiveClockAndCountdown() {
+            const currentTimeElem = document.getElementById('current-time');
+            const countdownElem = document.getElementById('countdown-timer');
+
+            setInterval(() => {
+                currentTimeElem.innerText = `現在時間: ${formatDateTime(new Date())}`;
+
+                countdownSeconds--;
+                if (countdownSeconds <= 0) {
+                    countdownSeconds = REFRESH_INTERVAL_SECONDS;
+                    loadInventoryData();
+                }
+
+                const mins = Math.floor(countdownSeconds / 60).toString().padStart(2, '0');
+                const secs = (countdownSeconds % 60).toString().padStart(2, '0');
+                countdownElem.innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function manualRefresh() {
+            countdownSeconds = REFRESH_INTERVAL_SECONDS;
+            loadInventoryData();
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function updateFullscreenBtnUI() {
+            const btnText = document.getElementById('fullscreen-btn-text');
+            const btnIcon = document.querySelector('#fullscreen-btn i');
+            if (btnText && btnIcon) {
+                if (document.fullscreenElement) {
+                    btnText.innerText = '退出全螢幕';
+                    btnIcon.className = 'fa-solid fa-compress text-xs';
+                } else {
+                    btnText.innerText = '全螢幕';
+                    btnIcon.className = 'fa-solid fa-expand text-xs';
+                }
+            }
+        }
+        document.addEventListener('fullscreenchange', updateFullscreenBtnUI);
+
+        function checkUrlParamsAndFilter() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            if (searchQuery) {
+                document.getElementById('searchInput').value = searchQuery;
+            }
+            handleSearch();
+        }
+
+        async function loadInventoryData() {
+            const fileTimeIndicator = document.getElementById('file-update-time');
+            const statusDot = document.getElementById('connection-status');
+
+            try {
+                // 讀取獨立的 inventory_kt.json
+                const response = await fetch(`./inventory_kt.json?t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+                
+                const data = await response.json();
+                allInventory = data.inventory || [];
+                fileTimeIndicator.innerText = `檔案更新時間: ${data.file_last_modified || '即時'}`;
+                
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-online";
+                fileTimeIndicator.className = "font-semibold text-emerald-400";
+            } catch (error) {
+                console.error('讀取 JSON 失敗:', error);
+                allInventory = [];
+                fileTimeIndicator.innerText = `檔案更新時間: 無法載入 JSON 資料`;
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping";
+                fileTimeIndicator.className = "font-semibold text-amber-400";
+            }
+
+            document.getElementById('kpi-total').innerText = allInventory.length;
+            checkUrlParamsAndFilter();
+        }
+
+        function updateKPI() {
+            document.getElementById('kpi-filtered').innerText = filteredInventory.length;
+            document.getElementById('total-orders-text').innerText = filteredInventory.length;
+            
+            const filteredTotalQty = filteredInventory.reduce((acc, item) => {
+                const qty = parseFloat(item['可用存貨']) || 0;
+                return acc + qty;
+            }, 0);
+
+            document.getElementById('kpi-total-qty').innerText = filteredTotalQty.toLocaleString();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (query) {
+                clearBtn.classList.remove('hidden');
+                filteredInventory = allInventory.filter(item => {
+                    const partNo = String(item['料號'] || '').toLowerCase();
+                    const location = String(item['儲位'] || '').toLowerCase();
+                    const remark = String(item['備註'] || '').toLowerCase();
+                    return partNo.includes(query) || location.includes(query) || remark.includes(query);
+                });
+            } else {
+                clearBtn.classList.add('hidden');
+                filteredInventory = [...allInventory];
+            }
+
+            updateKPI();
+            applySortAndRender();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            window.history.replaceState({}, document.title, window.location.pathname);
+            handleSearch();
+        }
+
+        function sortTable(field) {
+            if (currentSortField === field) {
+                isAscending = !isAscending;
+            } else {
+                currentSortField = field;
+                isAscending = true;
+            }
+            applySortAndRender();
+        }
+
+        function applySortAndRender() {
+            filteredInventory.sort((a, b) => {
+                let valA = a[currentSortField] || '';
+                let valB = b[currentSortField] || '';
+
+                if (currentSortField === '可用存貨' || currentSortField === '序號') {
+                    valA = parseFloat(valA) || 0;
+                    valB = parseFloat(valB) || 0;
+                }
+
+                if (valA < valB) return isAscending ? -1 : 1;
+                if (valA > valB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+
+            if (filteredInventory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-slate-500 font-sans text-base">查無相符的庫存資料</td></tr>`;
+                return;
+            }
+
+            filteredInventory.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-cyan-900/25 transition-colors duration-150 border-b border-cyan-950/60 text-center";
+
+                const qty = parseFloat(item['可用存貨']) || 0;
+
+                tr.innerHTML = `
+                    <td class="p-2.5 text-slate-400 font-bold">${item['序號']}</td>
+                    <td class="p-2.5 text-slate-300 font-mono">${item['日期']}</td>
+                    <td class="p-2.5 font-bold text-cyan-300 text-sm sm:text-base">${item['料號']}</td>
+                    <td class="p-2.5"><span class="badge-location">${item['儲位']}</span></td>
+                    <td class="p-2.5"><span class="badge-qty">${qty.toLocaleString()}</span></td>
+                    <td class="p-2.5 text-slate-400 text-xs font-sans">${item['備註']}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.onload = function() {
+            startLiveClockAndCountdown();
+            loadInventoryData();
+        };
+    </script>
+</body>
+</html>
